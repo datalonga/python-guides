@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informações do Servidor</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --content-bg: #2d2d2d;
+            --text-color: #e0e0e0;
+            --primary-color: #007bff;
+            --secondary-color: #0056b3;
+            --border-color: #444;
+            --card-bg: #333;
+            --card-hover: #3c3c3c;
+            --code-bg: #1e1e1e;
+            --code-color: #d4d4d4;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #ffffff;
+            margin-bottom: 0.5em;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        .info-card h3 {
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #bbb;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .info-value {
+            color: #e0e0e0;
+            word-break: break-word;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #aaa;
+        }
+
+        .error {
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .refresh-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: block;
+            margin: 0 auto 2rem;
+        }
+
+        .refresh-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .browser-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-card {
+            background-color: var(--code-bg);
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+
+            .info-grid,
+            .browser-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Informações do Servidor</h1>
+            <p class="subtitle">Detalhes sobre o ambiente do servidor e informações do navegador</p>
+        </header>
+
+        <button class="refresh-btn" onclick="updateAllInfo()">Atualizar Informações</button>
+
+        <div id="loading" class="loading">
+            Carregando informações do servidor...
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="section">
+                <h2>Informações do Servidor</h2>
+                <div class="info-grid" id="serverInfo">
+                    <div class="info-card">
+                        <h3>🌐 Servidor Web</h3>
+                        <div class="info-item">
+                            <span class="info-label">Servidor:</span>
+                            <span class="info-value" id="serverSoftware">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Versão:</span>
+                            <span class="info-value" id="serverVersion">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Protocolo:</span>
+                            <span class="info-value" id="serverProtocol">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Porta:</span>
+                            <span class="info-value" id="serverPort">-</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>🖥️ Sistema Operacional</h3>
+                        <div class="info-item">
+                            <span class="info-label">Sistema:</span>
+                            <span class="info-value" id="osName">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Versão:</span>
+                            <span class="info-value" id="osVersion">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Arquitetura:</span>
+                            <span class="info-value" id="osArch">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Hostname:</span>
+                            <span class="info-value" id="hostname">-</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>📁 Caminhos</h3>
+                        <div class="info-item">
+                            <span class="info-label">Documento Root:</span>
+                            <span class="info-value" id="documentRoot">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Script Atual:</span>
+                            <span class="info-value" id="scriptName">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Caminho Requisição:</span>
+                            <span class="info-value" id="requestUri">-</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>⏰ Tempo e Data</h3>
+                        <div class="info-item">
+                            <span class="info-label">Data/Hora Servidor:</span>
+                            <span class="info-value" id="serverTime">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Fuso Horário:</span>
+                            <span class="info-value" id="serverTimezone">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Timestamp:</span>
+                            <span class="info-value" id="serverTimestamp">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Informações do Navegador</h2>
+                <div class="info-grid" id="browserInfo">
+                    <div class="info-card">
+                        <h3>📱 Navegador</h3>
+                        <div class="info-item">
+                            <span class="info-label">Navegador:</span>
+                            <span class="info-value" id="browserName">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Versão:</span>
+                            <span class="info-value" id="browserVersion">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Moto:</span>
+                            <span class="info-value" id="engine">-</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>🖥️ Dispositivo</h3>
+                        <div class="info-item">
+                            <span class="info-label">Plataforma:</span>
+                            <span class="info-value" id="platform">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Arquitetura:</span>
+                            <span class="info-value" id="architecture">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tipo:</span>
+                            <span class="info-value" id="deviceType">-</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>📏 Tela e Janela</h3>
+                        <div class="info-item">
+                            <span class="info-label">Resolução:</span>
+                            <span class="info-value" id="screenResolution">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tamanho da Janela:</span>
+                            <span class="info-value" id="windowSize">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Profundidade Cores:</span>
+                            <span class="info-value" id="colorDepth">-</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>🌐 Conexão</h3>
+                        <div class="info-item">
+                            <span class="info-label">Linguagem:</span>
+                            <span class="info-value" id="language">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Referer:</span>
+                            <span class="info-value" id="referer">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Conexão:</span>
+                            <span class="info-value" id="connection">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Métricas de Performance</h2>
+                <div class="performance-metrics">
+                    <div class="metric-card">
+                        <div class="metric-value" id="loadTime">-</div>
+                        <div class="metric-label">Tempo de Carga (ms)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="domContentLoaded">-</div>
+                        <div class="metric-label">DOM Carregado (ms)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="firstPaint">-</div>
+                        <div class="metric-label">First Paint (ms)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="firstContentfulPaint">-</div>
+                        <div class="metric-label">FCP (ms)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="error" style="display: none;" class="error">
+            Não foi possível carregar todas as informações do servidor. Alguns dados só estão disponíveis em ambientes server-side (PHP, Node.js, etc.).
+        </div>
+    </div>
+
+    <script>
+        // Marca o tempo de início da carga
+        const loadStartTime = performance.now();
+
+        // Função para detectar informações do navegador
+        function getBrowserInfo() {
+            const ua = navigator.userAgent;
+            const platform = navigator.platform;
+            const language = navigator.language;
+            
+            // Detectar navegador
+            let browserName = 'Desconhecido';
+            let browserVersion = 'Desconhecido';
+            let engine = 'Desconhecido';
+            
+            if (ua.includes('Chrome')) {
+                browserName = 'Chrome';
+                browserVersion = ua.match(/Chrome\/(\d+\.\d+)/)?.[1] || 'Desconhecido';
+                engine = 'Blink';
+            } else if (ua.includes('Firefox')) {
+                browserName = 'Firefox';
+                browserVersion = ua.match(/Firefox\/(\d+\.\d+)/)?.[1] || 'Desconhecido';
+                engine = 'Gecko';
+            } else if (ua.includes('Safari')) {
+                browserName = 'Safari';
+                browserVersion = ua.match(/Version\/(\d+\.\d+)/)?.[1] || 'Desconhecido';
+                engine = 'WebKit';
+            } else if (ua.includes('Edge')) {
+                browserName = 'Edge';
+                browserVersion = ua.match(/Edge\/(\d+\.\d+)/)?.[1] || 'Desconhecido';
+                engine = 'Blink';
+            }
+
+            // Detectar plataforma e dispositivo
+            let deviceType = 'Desktop';
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+                deviceType = 'Mobile';
+            } else if (ua.includes('Tablet') || ua.includes('iPad')) {
+                deviceType = 'Tablet';
+            }
+
+            return {
+                browserName,
+                browserVersion,
+                engine,
+                platform,
+                architecture: navigator.cpuClass || navigator.deviceMemory ? '64-bit' : 'Unknown',
+                deviceType,
+                screenResolution: `${screen.width}x${screen.height}`,
+                windowSize: `${window.innerWidth}x${window.innerHeight}`,
+                colorDepth: `${screen.colorDepth}-bit`,
+                language,
+                referer: document.referrer || 'Direto',
+                connection: navigator.connection ? navigator.connection.effectiveType : 'Desconhecido'
+            };
+        }
+
+        // Função para calcular métricas de performance
+        function getPerformanceMetrics() {
+            const perfData = performance.getEntriesByType('navigation')[0];
+            const paintEntries = performance.getEntriesByType('paint');
+            
+            let firstPaint = '-';
+            let firstContentfulPaint = '-';
+            
+            paintEntries.forEach(entry => {
+                if (entry.name === 'first-paint') {
+                    firstPaint = Math.round(entry.startTime);
+                } else if (entry.name === 'first-contentful-paint') {
+                    firstContentfulPaint = Math.round(entry.startTime);
+                }
+            });
+
+            return {
+                loadTime: Math.round(performance.now()),
+                domContentLoaded: perfData ? Math.round(perfData.domContentLoadedEventEnd - perfData.fetchStart) : '-',
+                firstPaint,
+                firstContentfulPaint
+            };
+        }
+
+        // Função para obter informações do servidor (simuladas, pois JavaScript puro não pode acessar informações do servidor)
+        function getServerInfo() {
+            // Simular informações do servidor
+            const url = new URL(window.location.href);
+            
+            return {
+                serverSoftware: 'Simulado - JavaScript Client-Side',
+                serverVersion: 'N/A',
+                serverProtocol: url.protocol.replace(':', ''),
+                serverPort: url.port || (url.protocol === 'https:' ? '443' : '80'),
+                osName: 'Simulado',
+                osVersion: 'N/A',
+                osArch: 'N/A',
+                hostname: url.hostname,
+                documentRoot: 'N/A',
+                scriptName: url.pathname.split('/').pop() || 'index.html',
+                requestUri: url.pathname + url.search,
+                serverTime: new Date().toLocaleString(),
+                serverTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                serverTimestamp: Date.now()
+            };
+        }
+
+        // Função para atualizar todas as informações
+        function updateAllInfo() {
+            // Mostrar loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+
+            // Simular carregamento
+            setTimeout(() => {
+                try {
+                    // Obter informações
+                    const serverInfo = getServerInfo();
+                    const browserInfo = getBrowserInfo();
+                    const perfMetrics = getPerformanceMetrics();
+
+                    // Atualizar informações do servidor
+                    document.getElementById('serverSoftware').textContent = serverInfo.serverSoftware;
+                    document.getElementById('serverVersion').textContent = serverInfo.serverVersion;
+                    document.getElementById('serverProtocol').textContent = serverInfo.serverProtocol;
+                    document.getElementById('serverPort').textContent = serverInfo.serverPort;
+                    document.getElementById('osName').textContent = serverInfo.osName;
+                    document.getElementById('osVersion').textContent = serverInfo.osVersion;
+                    document.getElementById('osArch').textContent = serverInfo.osArch;
+                    document.getElementById('hostname').textContent = serverInfo.hostname;
+                    document.getElementById('documentRoot').textContent = serverInfo.documentRoot;
+                    document.getElementById('scriptName').textContent = serverInfo.scriptName;
+                    document.getElementById('requestUri').textContent = serverInfo.requestUri;
+                    document.getElementById('serverTime').textContent = serverInfo.serverTime;
+                    document.getElementById('serverTimezone').textContent = serverInfo.serverTimezone;
+                    document.getElementById('serverTimestamp').textContent = serverInfo.serverTimestamp;
+
+                    // Atualizar informações do navegador
+                    document.getElementById('browserName').textContent = browserInfo.browserName;
+                    document.getElementById('browserVersion').textContent = browserInfo.browserVersion;
+                    document.getElementById('engine').textContent = browserInfo.engine;
+                    document.getElementById('platform').textContent = browserInfo.platform;
+                    document.getElementById('architecture').textContent = browserInfo.architecture;
+                    document.getElementById('deviceType').textContent = browserInfo.deviceType;
+                    document.getElementById('screenResolution').textContent = browserInfo.screenResolution;
+                    document.getElementById('windowSize').textContent = browserInfo.windowSize;
+                    document.getElementById('colorDepth').textContent = browserInfo.colorDepth;
+                    document.getElementById('language').textContent = browserInfo.language;
+                    document.getElementById('referer').textContent = browserInfo.referer;
+                    document.getElementById('connection').textContent = browserInfo.connection;
+
+                    // Atualizar métricas de performance
+                    document.getElementById('loadTime').textContent = perfMetrics.loadTime;
+                    document.getElementById('domContentLoaded').textContent = perfMetrics.domContentLoaded;
+                    document.getElementById('firstPaint').textContent = perfMetrics.firstPaint;
+                    document.getElementById('firstContentfulPaint').textContent = perfMetrics.firstContentfulPaint;
+
+                    // Esconder loading e mostrar conteúdo
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                } catch (error) {
+                    console.error('Erro ao carregar informações:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                }
+            }, 1000);
+        }
+
+        // Função para detectar se está rodando em um servidor real
+        function checkServerEnvironment() {
+            // Verificar se está rodando localmente
+            const isLocal = window.location.protocol === 'file:';
+            if (isLocal) {
+                console.warn('Esta página está rodando localmente. Informações do servidor reais não estarão disponíveis.');
+            }
+        }
+
+        // Evento DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServerEnvironment();
+            updateAllInfo();
+        });
+
+        // Adicionar evento para redimensionamento da janela
+        window.addEventListener('resize', function() {
+            document.getElementById('windowSize').textContent = `${window.innerWidth}x${window.innerHeight}`;
+        });
+    </script>
+</body>
+</html>
